@@ -112,7 +112,8 @@ def problem_b():
 
     items = input.copy()
     for i in range(len(input[0])):
-        if len(items) == 1: break
+        if len(items) == 1:
+            break
 
         zeros = list(filter(lambda it: it[i] == '0', items))
         ones = list(filter(lambda it: it[i] == '1', items))
@@ -124,7 +125,8 @@ def problem_b():
 
     items = input.copy()
     for i in range(len(input[0])):
-        if len(items) == 1: break
+        if len(items) == 1:
+            break
 
         zeros = list(filter(lambda it: it[i] == '0', items))
         ones = list(filter(lambda it: it[i] == '1', items))
