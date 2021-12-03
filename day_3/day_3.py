@@ -110,45 +110,31 @@ def problem_b():
     # input = load_input("day_3_sample.txt")
     input = load_input("day_3.txt")
 
-    items = input
+    items = input.copy()
     for i in range(len(input[0])):
         if len(items) == 1: break
-        zeros = []
-        ones = []
-        for item in items:
-            if item[i] == '0':
-                zeros.append(item)
-            else:
-                ones.append(item)
 
+        zeros = list(filter(lambda it: it[i] == '0', items))
+        ones = list(filter(lambda it: it[i] == '1', items))
         if len(zeros) > len(ones):
             items = zeros
         else:
             items = ones
-
-    print(items[0])
     oxygen = int(items[0], 2)
 
-    items = input
-    for j in range(len(input[0])):
+    items = input.copy()
+    for i in range(len(input[0])):
         if len(items) == 1: break
-        zeros = []
-        ones = []
-        for item in items:
-            if item[j] == '0':
-                zeros.append(item)
-            else:
-                ones.append(item)
 
+        zeros = list(filter(lambda it: it[i] == '0', items))
+        ones = list(filter(lambda it: it[i] == '1', items))
         if len(zeros) <= len(ones):
             items = zeros
         else:
             items = ones
-
-    print(items[0])
     co2 = int(items[0], 2)
 
-    print('Result: ', oxygen*co2)
+    print('Result: ', oxygen * co2)
 
 
 if __name__ == '__main__':
