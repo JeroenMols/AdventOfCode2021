@@ -1,186 +1,122 @@
-# --- Day 4: Giant Squid ---
-# You're already almost 1.5km (almost a mile) below the surface of the ocean, already so deep that you can't see any sunlight. What you can see, however, is a giant squid that has attached itself to the outside of your submarine.
+# --- Day 6: Lanternfish ---
+# The sea floor is getting steeper. Maybe the sleigh keys got carried this way?
 #
-# Maybe it wants to play bingo?
+# A massive school of glowing lanternfish swims past. They must spawn quickly to reach such large numbers - maybe exponentially quickly? You should model their growth rate to be sure.
 #
-# Bingo is played on a set of boards each consisting of a 5x5 grid of numbers. Numbers are chosen at random, and the chosen number is marked on all boards on which it appears. (Numbers may not appear on all boards.) If all numbers in any row or any column of a board are marked, that board wins. (Diagonals don't count.)
+# Although you know nothing about this specific species of lanternfish, you make some guesses about their attributes. Surely, each lanternfish creates a new lanternfish once every 7 days.
 #
-# The submarine has a bingo subsystem to help passengers (currently, you and the giant squid) pass the time. It automatically generates a random order in which to draw numbers and a random set of boards (your puzzle input). For example:
+# However, this process isn't necessarily synchronized between every lanternfish - one lanternfish might have 2 days left until it creates another lanternfish, while another might have 4. So, you can model each fish as a single number that represents the number of days until it creates a new lanternfish.
 #
-# 7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
+# Furthermore, you reason, a new lanternfish would surely need slightly longer before it's capable of producing more lanternfish: two more days for its first cycle.
 #
-# 22 13 17 11  0
-#  8  2 23  4 24
-# 21  9 14 16  7
-#  6 10  3 18  5
-#  1 12 20 15 19
+# So, suppose you have a lanternfish with an internal timer value of 3:
 #
-#  3 15  0  2 22
-#  9 18 13 17  5
-# 19  8  7 25 23
-# 20 11 10 24  4
-# 14 21 16 12  6
+# After one day, its internal timer would become 2.
+# After another day, its internal timer would become 1.
+# After another day, its internal timer would become 0.
+# After another day, its internal timer would reset to 6, and it would create a new lanternfish with an internal timer of 8.
+# After another day, the first lanternfish would have an internal timer of 5, and the second lanternfish would have an internal timer of 7.
+# A lanternfish that creates a new fish resets its timer to 6, not 7 (because 0 is included as a valid timer value). The new lanternfish starts with an internal timer of 8 and does not start counting down until the next day.
 #
-# 14 21 17 24  4
-# 10 16 15  9 19
-# 18  8 23 26 20
-# 22 11 13  6  5
-#  2  0 12  3  7
-# After the first five numbers are drawn (7, 4, 9, 5, and 11), there are no winners, but the boards are marked as follows (shown here adjacent to each other to save space):
+# Realizing what you're trying to do, the submarine automatically produces a list of the ages of several hundred nearby lanternfish (your puzzle input). For example, suppose you were given the following list:
 #
-# 22 13 17 11  0         3 15  0  2 22        14 21 17 24  4
-#  8  2 23  4 24         9 18 13 17  5        10 16 15  9 19
-# 21  9 14 16  7        19  8  7 25 23        18  8 23 26 20
-#  6 10  3 18  5        20 11 10 24  4        22 11 13  6  5
-#  1 12 20 15 19        14 21 16 12  6         2  0 12  3  7
-# After the next six numbers are drawn (17, 23, 2, 0, 14, and 21), there are still no winners:
+# 3,4,3,1,2
+# This list means that the first fish has an internal timer of 3, the second fish has an internal timer of 4, and so on until the fifth fish, which has an internal timer of 2. Simulating these fish over several days would proceed as follows:
 #
-# 22 13 17 11  0         3 15  0  2 22        14 21 17 24  4
-#  8  2 23  4 24         9 18 13 17  5        10 16 15  9 19
-# 21  9 14 16  7        19  8  7 25 23        18  8 23 26 20
-#  6 10  3 18  5        20 11 10 24  4        22 11 13  6  5
-#  1 12 20 15 19        14 21 16 12  6         2  0 12  3  7
-# Finally, 24 is drawn:
+# Initial state: 3,4,3,1,2
+# After  1 day:  2,3,2,0,1
+# After  2 days: 1,2,1,6,0,8
+# After  3 days: 0,1,0,5,6,7,8
+# After  4 days: 6,0,6,4,5,6,7,8,8
+# After  5 days: 5,6,5,3,4,5,6,7,7,8
+# After  6 days: 4,5,4,2,3,4,5,6,6,7
+# After  7 days: 3,4,3,1,2,3,4,5,5,6
+# After  8 days: 2,3,2,0,1,2,3,4,4,5
+# After  9 days: 1,2,1,6,0,1,2,3,3,4,8
+# After 10 days: 0,1,0,5,6,0,1,2,2,3,7,8
+# After 11 days: 6,0,6,4,5,6,0,1,1,2,6,7,8,8,8
+# After 12 days: 5,6,5,3,4,5,6,0,0,1,5,6,7,7,7,8,8
+# After 13 days: 4,5,4,2,3,4,5,6,6,0,4,5,6,6,6,7,7,8,8
+# After 14 days: 3,4,3,1,2,3,4,5,5,6,3,4,5,5,5,6,6,7,7,8
+# After 15 days: 2,3,2,0,1,2,3,4,4,5,2,3,4,4,4,5,5,6,6,7
+# After 16 days: 1,2,1,6,0,1,2,3,3,4,1,2,3,3,3,4,4,5,5,6,8
+# After 17 days: 0,1,0,5,6,0,1,2,2,3,0,1,2,2,2,3,3,4,4,5,7,8
+# After 18 days: 6,0,6,4,5,6,0,1,1,2,6,0,1,1,1,2,2,3,3,4,6,7,8,8,8,8
+# Each day, a 0 becomes a 6 and adds a new 8 to the end of the list, while each other number decreases by 1 if it was present at the start of the day.
 #
-# 22 13 17 11  0         3 15  0  2 22        14 21 17 24  4
-#  8  2 23  4 24         9 18 13 17  5        10 16 15  9 19
-# 21  9 14 16  7        19  8  7 25 23        18  8 23 26 20
-#  6 10  3 18  5        20 11 10 24  4        22 11 13  6  5
-#  1 12 20 15 19        14 21 16 12  6         2  0 12  3  7
-# At this point, the third board wins because it has at least one complete row or column of marked numbers (in this case, the entire top row is marked: 14 21 17 24 4).
+# In this example, after 18 days, there are a total of 26 fish. After 80 days, there would be a total of 5934.
 #
-# The score of the winning board can now be calculated. Start by finding the sum of all unmarked numbers on that board; in this case, the sum is 188. Then, multiply that sum by the number that was just called when the board won, 24, to get the final score, 188 * 24 = 4512.
+# Find a way to simulate lanternfish. How many lanternfish would there be after 80 days?
 #
-# To guarantee victory against the giant squid, figure out which board will win first. What will your final score be if you choose that board?
-#
-# Your puzzle answer was 28082.
+# Your puzzle answer was 386755.
 #
 # --- Part Two ---
-# On the other hand, it might be wise to try a different strategy: let the giant squid win.
+# Suppose the lanternfish live forever and have unlimited food and space. Would they take over the entire ocean?
 #
-# You aren't sure how many bingo boards a giant squid could play at once, so rather than waste time counting its arms, the safe thing to do is to figure out which board will win last and choose that one. That way, no matter which boards it picks, it will win for sure.
+# After 256 days in the example above, there would be a total of 26984457539 lanternfish!
 #
-# In the above example, the second board is the last to win, which happens after 13 is eventually called and its middle column is completely marked. If you were to keep playing until this point, the second board would have a sum of unmarked numbers equal to 148 for a final score of 148 * 13 = 1924.
+# How many lanternfish would there be after 256 days?
 #
-# Figure out which board will win last. Once it wins, what would its final score be?
-#
-# Your puzzle answer was 8224.
+# Your puzzle answer was 1732731810807.
 #
 # Both parts of this puzzle are complete! They provide two gold stars: **
-
-from dataclasses import dataclass
-
-@dataclass(eq=True, frozen=True)
-class Point:
-    x: int
-    y: int
-
-
-@dataclass
-class Line:
-    start: Point
-    end: Point
-
-    def is_horizontal(self):
-        return self.start.y == self.end.y
-
-    def is_vertical(self):
-        return self.start.x == self.end.x
-
 
 def load_input(file_name):
     a_file = open(file_name, "r")
     input = []
     for line in a_file:
-        points = line.split('->')
-        start = points[0].split(',')
-        end = points[1].split(',')
-        input.append(Line(Point(int(start[0]), int(start[1])), Point(int(end[0]), int(end[1]))))
+        input = [int(element) for element in line.split(',')]
     return input
 
 
 def problem_a():
-    # lines = load_input("day_5_sample.txt")
-    lines = load_input("day_5.txt")
+    # initial = load_input("day_6_sample.txt")
+    initial = load_input("day_6.txt")
 
-    points = {Point(-1, -1): 0}
-    for line in lines:
-        if line.is_vertical():
-            if line.start.y < line.end.y:
-                start = line.start.y
-                end = line.end.y + 1
+    print("Initial state: ", initial)
+    population = initial
+    for day in range(0, 80):
+        for i, fish in enumerate(population.copy()):
+            if fish == 0:
+                population.append(8)
+                population[i] = 6
             else:
-                start = line.end.y
-                end = line.start.y + 1
+                population[i] = fish - 1
+        print("After day ", (day + 1), "days: ", population)
 
-            for i in range(start, end):
-                new_point = Point(line.start.x, i)
-                points[new_point] = points.get(new_point, 0) + 1
+    print('Result: ', len(population))
 
-        elif line.is_horizontal():
-            if line.start.x < line.end.x:
-                start = line.start.x
-                end = line.end.x + 1
-            else:
-                start = line.end.x
-                end = line.start.x + 1
 
-            for i in range(start, end):
-                new_point = Point(i, line.start.y)
-                points[new_point] = points.get(new_point, 0) + 1
-
-    duplicate_points = list(filter(lambda it: it > 1, list(points.values())))
-    print('Result: ', len(duplicate_points))
+def group_fish(ungrouped_fish):
+    grouped_fish = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    for fish in ungrouped_fish:
+        grouped_fish[fish] = grouped_fish[fish] + 1
+    return grouped_fish
 
 
 def problem_b():
-    # lines = load_input("day_5_sample.txt")
-    lines = load_input("day_5.txt")
+    # initial = load_input("day_6_sample.txt")
+    initial = load_input("day_6.txt")
 
-    points = {Point(-1, -1): 0}
-    for line in lines:
-        if line.is_vertical():
-            if line.start.y < line.end.y:
-                start = line.start.y
-                end = line.end.y + 1
-            else:
-                start = line.end.y
-                end = line.start.y + 1
+    population = group_fish(initial)
+    for day in range(0, 256):
+        population_end = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        population_end[0] = population[1]
+        population_end[1] = population[2]
+        population_end[2] = population[3]
+        population_end[3] = population[4]
+        population_end[4] = population[5]
+        population_end[5] = population[6]
+        population_end[6] = population[7] + population[0]
+        population_end[7] = population[8]
+        population_end[8] = population[0]
+        population = population_end
+        print("After day ", (day + 1), "days: ", population)
 
-            for i in range(start, end):
-                new_point = Point(line.start.x, i)
-                points[new_point] = points.get(new_point, 0) + 1
-
-        elif line.is_horizontal():
-            if line.start.x < line.end.x:
-                start = line.start.x
-                end = line.end.x + 1
-            else:
-                start = line.end.x
-                end = line.start.x + 1
-
-            for i in range(start, end):
-                new_point = Point(i, line.start.y)
-                points[new_point] = points.get(new_point, 0) + 1
-
-        else:
-            current = line.start
-            points[current] = points.get(current, 0) + 1
-            while current != line.end:
-                if current.x < line.end.x:
-                    if current.y < line.end.y:
-                        current = Point(current.x + 1, current.y + 1)
-                    else:
-                        current = Point(current.x + 1, current.y - 1)
-                else:
-                    if current.y < line.end.y:
-                        current = Point(current.x - 1, current.y + 1)
-                    else:
-                        current = Point(current.x - 1, current.y - 1)
-                points[current] = points.get(current, 0) + 1
-
-    duplicate_points = list(filter(lambda it: it > 1, list(points.values())))
-    print('Result: ', len(duplicate_points))
+    count = 0
+    for fish in population :
+        count += fish
+    print('Result: ', count)
 
 
 if __name__ == '__main__':
