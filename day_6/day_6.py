@@ -100,23 +100,14 @@ def problem_b():
 
     population = group_fish(initial)
     for day in range(0, 256):
-        population_end = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        population_end[0] = population[1]
-        population_end[1] = population[2]
-        population_end[2] = population[3]
-        population_end[3] = population[4]
-        population_end[4] = population[5]
-        population_end[5] = population[6]
-        population_end[6] = population[7] + population[0]
-        population_end[7] = population[8]
-        population_end[8] = population[0]
-        population = population_end
+        # Fish on day zero reproduce: move to end of list
+        population.append(population[0])
+        del population[0]
+        # Reproduce fish reproduce again after 7 days
+        population[6] = population[6] + population[8]
         print("After day ", (day + 1), "days: ", population)
 
-    count = 0
-    for fish in population :
-        count += fish
-    print('Result: ', count)
+    print('Result: ', sum(population))
 
 
 if __name__ == '__main__':
