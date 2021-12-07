@@ -80,7 +80,7 @@ def problem_a():
     print('Result: ', min(fuel_cost))
 
 
-def create_movement_cost(max_move):
+def calculate_all_movement_costs(max_move):
     return [calculate_move_cost(move) for move in range(0, max_move + 1)]
 
 
@@ -97,11 +97,11 @@ def problem_b():
 
     start, end = min(crabs), max(crabs)
     fuel_cost = []
-    movement_cost = create_movement_cost(end)
+    movement_costs = calculate_all_movement_costs(end)
     for position in range(start, end + 1):
         cost = 0
         for crab in crabs:
-            cost += movement_cost[abs(crab - position)]
+            cost += movement_costs[abs(crab - position)]
         fuel_cost.append(cost)
 
     print('Result: ', min(fuel_cost))
