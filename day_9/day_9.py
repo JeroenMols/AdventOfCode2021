@@ -62,10 +62,12 @@
 # Find the three largest basins and multiply their sizes together. In the above example, this is 9 * 14 * 9 = 1134.
 #
 # What do you get if you multiply together the sizes of the three largest basins?
-
+#
+# Your puzzle answer was 1110780.
+#
+# Both parts of this puzzle are complete! They provide two gold stars: **
 
 from dataclasses import dataclass
-
 
 def load_input(file_name):
     a_file = open(file_name, "r")
@@ -101,7 +103,10 @@ def isMinimum(lines, x, y):
     right = getValueAtPosition(lines, x + 1, y, 9)
     up = getValueAtPosition(lines, x, y - 1, 9)
     down = getValueAtPosition(lines, x, y + 1, 9)
-    return point < left and point < right and point < up and point < down
+    if point == 9:
+        return False
+    else:
+        return point <= left and point <= right and point <= up and point <= down
 
 
 def getMinimumSize(lines, x, y, minimum_size=1):
@@ -146,12 +151,9 @@ def problem_b():
     print(minima)
     minima.sort(reverse=True)
     print(minima)
-    print('Result:', minima[0]*minima[1]*minima[2])
+    print('Result:', minima[0] * minima[1] * minima[2])
 
 
-# Does not fully work, because this searches linearly for minima, whereas in reality a minimum could appear
-# depending on the order in which the points around it are marked as a mimimum.
-# Hence this misses some minima from the basin (that aren't discovered on the first pass)
 def getMinimumSize(lines, start_point):
     new_lines = lines.copy()
     new_lines[start_point.y] = new_lines[start_point.y][:start_point.x] + '9' + new_lines[start_point.y][start_point.x + 1:]
@@ -191,8 +193,11 @@ def getMinimumSize(lines, start_point):
         minima = new_minima
 
     print(start_point, " - ", minimum_size)
-
     return minimum_size
+
+
+def markPoint(new_lines, point):
+    new_lines[point.y] = new_lines[point.y][:point.x] + '9' + new_lines[point.y][point.x + 1:]
 
 
 if __name__ == '__main__':
