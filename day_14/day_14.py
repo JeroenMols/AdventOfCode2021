@@ -49,15 +49,16 @@
 #
 # Your puzzle answer was 3408.
 #
-# The first half of this puzzle is complete! It provides one gold star: *
-#
 # --- Part Two ---
 # The resulting polymer isn't nearly strong enough to reinforce the submarine. You'll need to run more steps of the pair insertion process; a total of 40 steps should do it.
 #
 # In the above example, the most common element is B (occurring 2192039569602 times) and the least common element is H (occurring 3849876073 times); subtracting these produces 2188189693529.
 #
 # Apply 40 steps of pair insertion to the polymer template and find the most and least common elements in the result. What do you get if you take the quantity of the most common element and subtract the quantity of the least common element?
-
+#
+# Your puzzle answer was 3724343376942.
+#
+# Both parts of this puzzle are complete! They provide two gold stars: **
 
 def load_input(file_name):
     a_file = open(file_name, "r")
@@ -84,46 +85,41 @@ def problem_a():
     print (occurrences)
     print("Result: ", max(occurrences.values()) - min(occurrences.values()))
 
-# This *should* work, though is to inefficient to run on a regular machine.
-# Even tried converting this code to kotlin and run it in parallel using coroutines
-#
-# Note: insertions in a list turned out to be slower
-# Note2: appending to list is faster than appending to str
 def problem_b():
     # template, insertions = load_input("day_14_sample.txt")
     template, insertions = load_input("day_14.txt")
 
-    template = perform_insertions(template, insertions, 5)
-    print(get_occurrences(template))
+    times = 40
+    initial = 20
+
+    first_pass = perform_insertions(template, insertions, initial)
 
     # Split in smaller shards
     shards = []
-    for index in range(0, len(template) - 1):
-        shards.append(template[index] + template[index + 1])
+    for index in range(0, len(first_pass) - 1):
+        shards.append(first_pass[index] + first_pass[index + 1])
 
-    maximum = len(shards)
+    shard_occurrences = process_shards(initial, insertions, shards, times)
+    occurrences = merge_shard_occurrences(shard_occurrences)
+
+    print("Result: ", max(occurrences.values()) - min(occurrences.values()))
+
+
+def process_shards(initial, insertions, shards, times):
+    cache = {}
     shard_occurrences = []
     for index, shard in enumerate(shards):
-        processed = perform_insertions(shard, insertions, 24)
         if index == len(shards) - 1:
+            processed = perform_insertions(shard, insertions, times - initial)
             shard_occurrences.append(get_occurrences(processed))
         else:
-            # Exclude last element as that's duplicate in the next shard.
-            shard_occurrences.append(get_occurrences(processed[0: len(processed) - 1]))
-        print(index,'/', maximum)
-
-    # Merge occurrences from shards
-    occurrences = {}
-    for shard_occurrences in shard_occurrences:
-        for char in shard_occurrences:
-            if char in occurrences:
-                occurrences[char] = occurrences[char] + shard_occurrences[char]
-            else:
-                occurrences[char] = shard_occurrences[char]
-
-    print(occurrences)
-    result = max(occurrences.values()) - min(occurrences.values())
-    print("Result: ", result)
+            if shard not in cache.keys():
+                # Exclude last element as that's duplicate in the next shard.
+                processed = perform_insertions(shard, insertions, times - initial)
+                cache[shard] = get_occurrences(processed[0:len(processed) - 1])
+            shard_occurrences.append(cache[shard])
+        print(index,'/', len(shards))
+    return shard_occurrences
 
 
 def perform_insertions(shard, insertions, times):
@@ -132,7 +128,6 @@ def perform_insertions(shard, insertions, times):
         for index in range(1, len(shard)):
             new_shard.append(insertions[(shard[index - 1] + shard[index])])
             new_shard.append(shard[index])
-        print(shard)
         shard = new_shard.copy()
     return shard
 
@@ -144,6 +139,17 @@ def get_occurrences(template):
             occurrences[char] = occurrences[char] + 1
         else:
             occurrences[char] = 1
+    return occurrences
+
+
+def merge_shard_occurrences(shard_occurrences):
+    occurrences = {}
+    for shard_occurrences in shard_occurrences:
+        for char in shard_occurrences:
+            if char in occurrences:
+                occurrences[char] = occurrences[char] + shard_occurrences[char]
+            else:
+                occurrences[char] = shard_occurrences[char]
     return occurrences
 
 
