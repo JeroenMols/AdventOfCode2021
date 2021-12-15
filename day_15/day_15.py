@@ -174,6 +174,7 @@ def load_input(file_name):
 @dataclass(eq=True, frozen=True)
 class Path:
     points: []
+    cost: int
 
 
 @dataclass(eq=True, frozen=True)
@@ -190,6 +191,30 @@ def problem_a():
 
     print("Result: ", min_cost)
 
+
+# Does't work, need to use an algorithm like Dykstra or A+
+# After 2hours of running, made it to step 571
+def problem_b():
+    # cavern = load_input("day_15_sample.txt")
+    cavern = load_input("day_15.txt")
+
+    data = repeat_input(cavern, 5)
+    min_cost = brute_force_all_paths(data)
+
+    print('Result:', min_cost)
+
+
+def repeat_input(cavern, times):
+    data = []
+    for y in range(0, len(cavern) * times):
+        data.append([])
+        for x in range(0, len(cavern[0]) * times):
+            value = cavern[(y % len(cavern))][(x % len(cavern[0]))]
+            value = (value + int(y / len(cavern)) + int(x / len(cavern[0])))
+            if value > 9:
+                value -= 9
+            data[y].append(value)
+    return data
 
 # Very fast approach, but only considers moving down + right
 def down_right_minimum(cavern):
@@ -222,19 +247,21 @@ def print_data(data):
     for y in range(0, len(data)):
         line = ''
         for x in range(0, len(data[0])):
-            if data[y][x] < 10:
-                line += '0' + str(data[y][x]) + '|'
-            else:
-                line += str(data[y][x]) + '|'
+            line += str(data[y][x])
+            # if data[y][x] < 10:
+            #     line += '0' + str(data[y][x]) + '|'
+            # else:
+            #     line += str(data[y][x]) + '|'
         print(line)
 
 
 # Steps in all directions, tries to smartly discard paths but is still very slow
 def brute_force_all_paths(cavern):
-    next_paths = [Path([Point(0, 0)])]
+    next_paths = [Path([Point(0, 0)], cavern[0][0])]
 
     # take path straight down and to right as first guess of minimum
     min_cost = down_right_minimum(cavern) + cavern[0][0]
+    print(min_cost)
 
     end_point = Point(len(cavern[0]) - 1, len(cavern) - 1)
 
@@ -263,7 +290,7 @@ def brute_force_all_paths(cavern):
                 if point == end_point:
                     new_points = path.points.copy()
                     new_points.append(point)
-                    min_cost = min(calculate_cost(cavern, new_points), min_cost)
+                    min_cost = min(path.cost + cavern[point.y][point.x], min_cost)
                     continue
 
                 # Don't allow loops
@@ -272,7 +299,7 @@ def brute_force_all_paths(cavern):
 
                 new_points = path.points.copy()
                 new_points.append(point)
-                new_cost = calculate_cost(cavern, new_points)
+                new_cost = path.cost + cavern[point.y][point.x]
 
                 # Stop processing path when cost higher than current min
                 if new_cost > min_cost:
@@ -280,11 +307,11 @@ def brute_force_all_paths(cavern):
 
                 # Only consider path if cheaper than other path to same point
                 elif point in next_paths_dict:
-                    cost = calculate_cost(cavern, next_paths_dict[point].points)
+                    cost = next_paths_dict[point].cost
                     if new_cost < cost:
-                        next_paths_dict[point] = Path(new_points)
+                        next_paths_dict[point] = Path(new_points, new_cost)
                 else:
-                    next_paths_dict[point] = Path(new_points)
+                    next_paths_dict[point] = Path(new_points, new_cost)
 
         next_paths = next_paths_dict.values()
 
@@ -312,9 +339,5 @@ def calculate_cost(cavern, points):
     return cost
 
 
-def problem_b():
-    pass
-
-
 if __name__ == '__main__':
-    problem_a()
+    problem_b()
